@@ -1,0 +1,8 @@
+node_modules
+.DS_Store*
+.hubot_history
+nohup.out
+bearyhubot.log
+start.sh
+restart.sh
+stop.sh
