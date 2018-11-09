@@ -5,29 +5,6 @@ module.exports = (robot) => {
     const TODO = 'todo_'
     const TAG = 'tag'
 
-    // simple interface for test
-    robot.respond (/set (.+) (.+)/i, (msg) => {
-        let key = msg.match[1]
-        let value = msg.match[2]
-
-        robot.brain.set(key, value)
-        msg.send (`set ${key} = ${value}`)
-    })
-
-    robot.respond (/get (.+)/i, (msg) => {
-        let key = msg.match[1]
-        let value = robot.brain.get(key)
-        msg.send (`get ${key} = ${value}`)
-    })
-
-    robot.respond (/del (.+)/i, (msg) => {
-        let key = msg.match[1]
-        let value = robot.brain.get(key)
-
-        robot.brain.remove(key)
-        msg.send (`del ${key} = ${value}`)
-    })
-
     // todo list functions
     robot.respond (/add(?: t:(.+))? (.+)/i, (msg) => {
         let tag = msg.match[1]
@@ -111,5 +88,28 @@ module.exports = (robot) => {
     robot.respond (/save/i, (msg) => {
         robot.brain.save()
         msg.send ('DONE:save')
+    })
+
+    // simple interface for test
+    robot.respond (/set (.+) (.+)/i, (msg) => {
+        let key = msg.match[1]
+        let value = msg.match[2]
+
+        robot.brain.set(key, value)
+        msg.send (`set ${key} = ${value}`)
+    })
+
+    robot.respond (/get (.+)/i, (msg) => {
+        let key = msg.match[1]
+        let value = robot.brain.get(key)
+        msg.send (`get ${key} = ${value}`)
+    })
+
+    robot.respond (/del (.+)/i, (msg) => {
+        let key = msg.match[1]
+        let value = robot.brain.get(key)
+
+        robot.brain.remove(key)
+        msg.send (`del ${key} = ${value}`)
     })
 }
