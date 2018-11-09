@@ -2,8 +2,28 @@
 
 module.exports = (robot) => {
     const ID = 'id'
-    const TODO = 'todo_'
     const TAG = 'tag'
+    const SEP = '_'
+
+    const TODO = 'todo_'
+    const BUCKET = 'bucket_'
+    const MONITOR = 'monitor_'
+    const ARCHIVE = 'archive_'
+    const DONE = 'done_'
+
+    // TODO -ok-> DONE
+    // TODO -rm-> BUCKET
+    // TODO -see-> MONITOR
+
+    // BUCKET -up-> TODO
+    // BUCKET -see-> MONITOR
+    // BUCKET -rm-> ARCHIVE
+
+    // MONITOR -do-> TODO
+    // MONITOR -ok-> DONE
+    // MONITOR -rm-> ARCHIVE
+
+    // ARCHIVE -rm-> delete
 
     // todo list functions
     robot.respond (/add(?: t:(.+))? (.+)/i, (msg) => {
