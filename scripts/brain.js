@@ -115,7 +115,7 @@ module.exports = (robot) => {
         robot.brain.set(NEXT_ID, id + 1)
         robot.brain.set(tag, ids)
         add_tag(robot, tag)
-        msg.send (`OK: add ${id}> ${work}`)
+        msg.send (`OK: add t:${tag} ${id}> ${work}`)
     })
 
     robot.respond (/rm (\d+)/i, (msg) => {
@@ -227,7 +227,7 @@ module.exports = (robot) => {
 
         // update id 
         let id = robot.brain.get(NEXT_ID)
-        if (id == null || des_id > id) {
+        if (id == null || des_id >= id) {
             robot.brain.set(NEXT_ID, des_id + 1)
         }
 
