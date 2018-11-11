@@ -1,6 +1,6 @@
 'use strict'
 
-const NEXT_ID = 'id'
+const NEXT_ID = 'next_id'
 const TAGS = 'tags'
 const SEP = '_'
 
@@ -15,7 +15,7 @@ const DONE = 'done'
 
 function change_tag(robot, id, data, tag_src, tag_dest) {
     // update data's tag
-    data[KEY_T] = tag_dest
+    data.set(KEY_T, tag_dest)
     robot.brain.set(id, data)
     
     // delete id from src tag
@@ -34,7 +34,7 @@ function change_tag(robot, id, data, tag_src, tag_dest) {
 
 function remove_tag_data(robot, id, data) {
     // delete id from tag list
-    let tag = data[KEY_T]
+    let tag = data.get(KEY_T)
     let ids = robot.brain.get(tag)
     let index = ids.indexOf(id)
     ids.splice(index, 1)
@@ -74,7 +74,9 @@ module.exports = (robot) => {
         let tag = msg.match[1] || TODO
         let work = msg.match[2]
 
-        let data = {KEY_T:tag, KEY_V:work}
+        let data = new Map()
+        data.set(KEY_T, tag)
+        data.set(KEY_V, work)
 
         let id = robot.brain.get(NEXT_ID) || 1
         let ids = robot.brain.get(tag) || []
@@ -95,7 +97,7 @@ module.exports = (robot) => {
             msg.send (`ERR: no data for ${id}`)
             return
         }
-        let tag = data[KEY_T]
+        let tag = data.get(KEY_T)
         switch (tag) {
             case TODO:
                 change_tag(robot, id, data, TODO, BUCKET)
@@ -122,7 +124,7 @@ module.exports = (robot) => {
             msg.send (`ERR: no data for ${id}`)
             return
         }
-        let tag = data[KEY_T]
+        let tag = data.get(KEY_T)
         switch (tag) {
             case BUCKET:
                 change_tag(robot, id, data, BUCKET, TODO)
@@ -146,7 +148,7 @@ module.exports = (robot) => {
             msg.send (`ERR: no data for ${id}`)
             return
         }
-        let tag = data[KEY_T]
+        let tag = data.get(KEY_T)
         switch (tag) {
             case BUCKET:
                 change_tag(robot, id, data, BUCKET, MONITOR)
@@ -170,7 +172,7 @@ module.exports = (robot) => {
             msg.send (`ERR: no data for ${id}`)
             return
         }
-        let tag = data[KEY_T]
+        let tag = data.get(KEY_T)
         switch (tag) {
             case MONITOR:
                 change_tag(robot, id, data, MONITOR, DONE)
@@ -230,7 +232,7 @@ module.exports = (robot) => {
             res = `${tag}:\n`
             sort_ids.forEach((id) => {
                 let data = robot.brain.get(id)
-                res += `${id}> ${data[KEY_V]}\n`
+                res += `${id}> ${data.get(KEY_V)}\n`
             })
         })
       
