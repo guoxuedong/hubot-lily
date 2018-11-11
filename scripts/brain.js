@@ -242,6 +242,14 @@ module.exports = (robot) => {
         let data = robot.brain.get(src_id)
         robot.brain.set(des_id, data) 
         robot.brain.remove(src_id)
+
+        // update ids
+        let tag = data[KEY_T]
+        let ids = robot.brain.get(tag)
+        let index = ids.indexOf(src_id)
+        ids.splice(index, 1, des_id)
+        robot.brain.set(tag, ids)
+
         msg.send (`OK: mv ${src_id} to ${des_id}`)
     })
 
