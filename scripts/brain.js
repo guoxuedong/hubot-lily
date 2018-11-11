@@ -147,7 +147,7 @@ module.exports = (robot) => {
     })
 
     robot.respond (/do (\d+)/i, (msg) => {
-        let id = msg.match[1]
+        let id = parseInt(msg.match[1])
 
         let data  = robot.brain.get(id)
         if (data == null) {
@@ -172,7 +172,7 @@ module.exports = (robot) => {
     })
 
     robot.respond (/see (\d+)/i, (msg) => {
-        let id = msg.match[1]
+        let id = parseInt(msg.match[1])
 
         let data  = robot.brain.get(id)
         if (data == null) {
@@ -197,7 +197,7 @@ module.exports = (robot) => {
     })
 
     robot.respond (/ok (\d+)/i, (msg) => {
-        let id = msg.match[1]
+        let id = parseInt(msg.match[1])
 
         let data  = robot.brain.get(id)
         if (data == null) {
@@ -222,7 +222,7 @@ module.exports = (robot) => {
     })
 
     robot.respond (/mv (\d+) (\d+)/i, (msg) => {
-        let src_id = msg.match[1]
+        let src_id = parseInt(msg.match[1])
         let des_id = parseInt(msg.match[2])
 
         // update id 
@@ -265,6 +265,9 @@ module.exports = (robot) => {
             res += `${tag}:\n`
             sort_ids.forEach((id) => {
                 let data = robot.brain.get(id)
+                if (tag != data[KEY_T]) {
+                    throw new Error(`ERR: ${tag} != ${data[KEY_T]}`)
+                }
                 res += `${id}> ${data[KEY_V]}\n`
             })
             res += '--------\n'
