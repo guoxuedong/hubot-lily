@@ -13,7 +13,7 @@ const MONITOR = 'monitor'
 const ARCHIVE = 'archive'
 const DONE = 'done'
 
-function change_tag(id, data, tag_src, tag_dest) {
+function change_tag(robot, id, data, tag_src, tag_dest) {
     // update data's tag
     data[KEY_T] = tag_dest
     robot.brain.set(id, data)
@@ -29,10 +29,10 @@ function change_tag(id, data, tag_src, tag_dest) {
     ids.push[id]
     robot.brain.set(tag_dest, ids)
 
-    update_taglist(tag_dest)
+    update_taglist(robot, tag_dest)
 }
 
-function remove_tag_data(id, data) {
+function remove_tag_data(robot, id, data) {
     // delete id from tag list
     let tag = data[KEY_T]
     let ids = robot.brain.get(tag)
@@ -44,7 +44,7 @@ function remove_tag_data(id, data) {
     robot.brain.remove(id)
 }
 
-function update_taglist(tag){
+function update_taglist(robot, tag){
     let taglist = robot.brain.get(TAGS)
     let index = tag.indexOf(tag)
     if (index < 0) {
@@ -83,7 +83,7 @@ module.exports = (robot) => {
         robot.brain.set(id, data)
         robot.brain.set(NEXT_ID, id + 1)
         robot.brain.set(tag, ids)
-        update_taglist(tag)
+        update_taglist(robot, tag)
         msg.send (`OK: add ${id}> ${work}`)
     })
 
@@ -98,17 +98,17 @@ module.exports = (robot) => {
         let tag = data[KEY_T]
         switch (tag) {
             case TODO:
-                change_tag(id, data, TODO, BUCKET)
+                change_tag(robot, id, data, TODO, BUCKET)
                 break
             case BUCKET:
-                change_tag(id, data, BUCKET, ARCHIVE)
+                change_tag(robot, id, data, BUCKET, ARCHIVE)
                 break
             case MONITOR:
-                change_tag(id, data, MONITOR, ARCHIVE)
+                change_tag(robot, id, data, MONITOR, ARCHIVE)
                 break
             case ARCHIVE:
             default:
-                remove_tag_data(id, data)
+                remove_tag_data(robot, id, data)
         }
 
         msg.send (`OK: rm ${id}> ${data}`)
@@ -125,10 +125,10 @@ module.exports = (robot) => {
         let tag = data[KEY_T]
         switch (tag) {
             case BUCKET:
-                change_tag(id, data, BUCKET, TODO)
+                change_tag(robot, id, data, BUCKET, TODO)
                 break
             case MONITOR:
-                change_tag(id, data, MONITOR, TODO)
+                change_tag(robot, id, data, MONITOR, TODO)
                 break
             default:
                 msg.send (`ERR: can't do ${tag}`)
@@ -149,10 +149,10 @@ module.exports = (robot) => {
         let tag = data[KEY_T]
         switch (tag) {
             case BUCKET:
-                change_tag(id, data, BUCKET, MONITOR)
+                change_tag(robot, id, data, BUCKET, MONITOR)
                 break
             case TODO:
-                change_tag(id, data, TODO, MONITOR)
+                change_tag(robot, id, data, TODO, MONITOR)
                 break
             default:
                 msg.send (`ERR: can't see ${tag}`)
@@ -173,10 +173,10 @@ module.exports = (robot) => {
         let tag = data[KEY_T]
         switch (tag) {
             case MONITOR:
-                change_tag(id, data, MONITOR, DONE)
+                change_tag(robot, id, data, MONITOR, DONE)
                 break
             case TODO:
-                change_tag(id, data, TODO, DONE)
+                change_tag(robot, id, data, TODO, DONE)
                 break
             default:
                 msg.send (`ERR: can't finish ${tag}`)
