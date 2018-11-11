@@ -23,16 +23,32 @@ function change_tag(robot, id, data, tag_src, tag_dest) {
     let index = ids.indexOf(id)
     ids.splice(index, 1)
     robot.brain.set(tag_src, ids)
+    if (ids.length == 0) {
+        remove_tag(robot, tag_src)
+    }
     
     // add id to dest tag
     let ids_add = robot.brain.get(tag_dest) || []
-    ids_add.push[id]
+    ids_add.push(id)
     robot.brain.set(tag_dest, ids_add)
 
     update_taglist(robot, tag_dest)
 
     return `mv ${id}> ${data[KEY_V]} from t:${tag_src} to t:${tag_dest}`
 }
+
+function remove_tag(robot, tag) {
+    // remove tag
+    robot.brain.remove(tag)
+
+    // update tag list
+    let taglist = robot.brain.get(TAGS)
+    let index = taglist.indexOf(tag)
+    if (index >= 0) {
+        taglist.splice(index, 1)
+        robot.brain.set(TAGS, taglist)
+    }
+} 
 
 function remove_tag_data(robot, id, data) {
     // delete id from tag list
@@ -41,6 +57,11 @@ function remove_tag_data(robot, id, data) {
     let index = ids.indexOf(id)
     ids.splice(index, 1)
     robot.brain.set(tag, ids)
+
+    // remove tag if need
+    if (ids.length == 0) {
+        remove_tag(robot, tag)
+    }
 
     // delete data
     robot.brain.remove(id)
