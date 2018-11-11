@@ -23,6 +23,8 @@ function change_tag(robot, id, data, tag_src, tag_dest) {
     let index = ids.indexOf(id)
     ids.splice(index, 1)
     robot.brain.set(tag_src, ids)
+    
+    // remove tag if need
     if (ids.length == 0) {
         remove_tag(robot, tag_src)
     }
@@ -32,23 +34,10 @@ function change_tag(robot, id, data, tag_src, tag_dest) {
     ids_add.push(id)
     robot.brain.set(tag_dest, ids_add)
 
-    update_taglist(robot, tag_dest)
+    add_tag(robot, tag_dest)
 
     return `mv ${id}> ${data[KEY_V]} from t:${tag_src} to t:${tag_dest}`
 }
-
-function remove_tag(robot, tag) {
-    // remove tag
-    robot.brain.remove(tag)
-
-    // update tag list
-    let taglist = robot.brain.get(TAGS)
-    let index = taglist.indexOf(tag)
-    if (index >= 0) {
-        taglist.splice(index, 1)
-        robot.brain.set(TAGS, taglist)
-    }
-} 
 
 function remove_tag_data(robot, id, data) {
     // delete id from tag list
@@ -68,7 +57,7 @@ function remove_tag_data(robot, id, data) {
     return `rm ${id}> ${data[KEY_V]} in t:${tag}`
 }
 
-function update_taglist(robot, tag){
+function add_tag(robot, tag){
     let taglist = robot.brain.get(TAGS) || []
     let index = taglist.indexOf(tag)
     if (index < 0) {
@@ -76,6 +65,19 @@ function update_taglist(robot, tag){
         robot.brain.set(TAGS, taglist)
     }
 }
+
+function remove_tag(robot, tag) {
+    // remove tag
+    robot.brain.remove(tag)
+
+    // update tag list
+    let taglist = robot.brain.get(TAGS)
+    let index = taglist.indexOf(tag)
+    if (index >= 0) {
+        taglist.splice(index, 1)
+        robot.brain.set(TAGS, taglist)
+    }
+} 
 
 module.exports = (robot) => {
 
@@ -109,12 +111,12 @@ module.exports = (robot) => {
         robot.brain.set(id, data)
         robot.brain.set(NEXT_ID, id + 1)
         robot.brain.set(tag, ids)
-        update_taglist(robot, tag)
+        add_tag(robot, tag)
         msg.send (`OK: add ${id}> ${work}`)
     })
 
     robot.respond (/rm (\d+)/i, (msg) => {
-        let id = msg.match[1]
+        let id = parseInt(msg.match[1])
 
         let data  = robot.brain.get(id)
         if (data == null) {
