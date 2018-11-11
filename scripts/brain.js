@@ -25,9 +25,9 @@ function change_tag(robot, id, data, tag_src, tag_dest) {
     robot.brain.set(tag_src, ids)
     
     // add id to dest tag
-    ids = robot.brain.get(tag_dest) || []
-    ids.push[id]
-    robot.brain.set(tag_dest, ids)
+    let ids_add = robot.brain.get(tag_dest) || []
+    ids_add.push[id]
+    robot.brain.set(tag_dest, ids_add)
 
     update_taglist(robot, tag_dest)
 
