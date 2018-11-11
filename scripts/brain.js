@@ -45,8 +45,8 @@ function remove_tag_data(robot, id, data) {
 }
 
 function update_taglist(robot, tag){
-    let taglist = robot.brain.get(TAGS)
-    let index = tag.indexOf(tag)
+    let taglist = robot.brain.get(TAGS) || []
+    let index = taglist.indexOf(tag)
     if (index < 0) {
         taglist.push(tag)
         robot.brain.set(TAGS, taglist)
@@ -215,7 +215,7 @@ module.exports = (robot) => {
 
         let taglist = []
         if (tag_query == undefined) {
-            taglist = robot.brain.get(TAGS)
+            taglist = robot.brain.get(TAGS) || []
         } else {
             taglist.push(tag_query)
         }
