@@ -21,6 +21,9 @@ function change_tag(robot, id, data, tag_src, tag_dest) {
     // delete id from src tag
     let ids = robot.brain.get(tag_src)
     let index = ids.indexOf(id)
+    if (index < 0) {
+        return `t:${tag_src} has no ${id} in ${ids}`
+    }
     ids.splice(index, 1)
     robot.brain.set(tag_src, ids)
     
