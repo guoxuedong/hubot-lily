@@ -229,7 +229,7 @@ module.exports = (robot) => {
                 return a > b ? 1 : -1;
             })
 
-            res = `${tag}:\n`
+            res += `${tag}:\n`
             sort_ids.forEach((id) => {
                 let data = robot.brain.get(id)
                 res += `${id}> ${data.get(KEY_V)}\n`
