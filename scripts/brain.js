@@ -30,6 +30,8 @@ function change_tag(robot, id, data, tag_src, tag_dest) {
     robot.brain.set(tag_dest, ids)
 
     update_taglist(robot, tag_dest)
+
+    return `mv ${id}> ${data[KEY_V]} from t:${tag_src} to t:${tag_dest}`
 }
 
 function remove_tag_data(robot, id, data) {
@@ -42,6 +44,7 @@ function remove_tag_data(robot, id, data) {
 
     // delete data
     robot.brain.remove(id)
+    return `rm ${id}> ${data[KEY_V]} in t:${tag}`
 }
 
 function update_taglist(robot, tag){
@@ -98,22 +101,23 @@ module.exports = (robot) => {
             return
         }
         let tag = data[KEY_T]
+        let res = ''
         switch (tag) {
             case TODO:
-                change_tag(robot, id, data, TODO, BUCKET)
+                res = change_tag(robot, id, data, TODO, BUCKET)
                 break
             case BUCKET:
-                change_tag(robot, id, data, BUCKET, ARCHIVE)
+                res = change_tag(robot, id, data, BUCKET, ARCHIVE)
                 break
             case MONITOR:
-                change_tag(robot, id, data, MONITOR, ARCHIVE)
+                res = change_tag(robot, id, data, MONITOR, ARCHIVE)
                 break
             case ARCHIVE:
             default:
-                remove_tag_data(robot, id, data)
+                res = remove_tag_data(robot, id, data)
         }
 
-        msg.send (`OK: rm ${id}> ${data}`)
+        msg.send (`OK: ${res}`)
     })
 
     robot.respond (/do (\d+)/i, (msg) => {
@@ -125,19 +129,20 @@ module.exports = (robot) => {
             return
         }
         let tag = data[KEY_T]
+        let res = ''
         switch (tag) {
             case BUCKET:
-                change_tag(robot, id, data, BUCKET, TODO)
+                res = change_tag(robot, id, data, BUCKET, TODO)
                 break
             case MONITOR:
-                change_tag(robot, id, data, MONITOR, TODO)
+                res = change_tag(robot, id, data, MONITOR, TODO)
                 break
             default:
                 msg.send (`ERR: can't do ${tag}`)
                 return
         }
 
-        msg.send (`OK: do ${id}> ${data}`)
+        msg.send (`OK: ${res}`)
     })
 
     robot.respond (/see (\d+)/i, (msg) => {
@@ -149,19 +154,20 @@ module.exports = (robot) => {
             return
         }
         let tag = data[KEY_T]
+        let res = ''
         switch (tag) {
             case BUCKET:
-                change_tag(robot, id, data, BUCKET, MONITOR)
+                res = change_tag(robot, id, data, BUCKET, MONITOR)
                 break
             case TODO:
-                change_tag(robot, id, data, TODO, MONITOR)
+                res = change_tag(robot, id, data, TODO, MONITOR)
                 break
             default:
                 msg.send (`ERR: can't see ${tag}`)
                 return
         }
 
-        msg.send (`OK: see ${id}> ${data}`)
+        msg.send (`OK: ${res}`)
     })
 
     robot.respond (/ok (\d+)/i, (msg) => {
@@ -173,19 +179,20 @@ module.exports = (robot) => {
             return
         }
         let tag = data[KEY_T]
+        let res = ''
         switch (tag) {
             case MONITOR:
-                change_tag(robot, id, data, MONITOR, DONE)
+                res = change_tag(robot, id, data, MONITOR, DONE)
                 break
             case TODO:
-                change_tag(robot, id, data, TODO, DONE)
+                res = change_tag(robot, id, data, TODO, DONE)
                 break
             default:
                 msg.send (`ERR: can't finish ${tag}`)
                 return
         }
 
-        msg.send (`OK: finish ${id}> ${data}`)
+        msg.send (`OK: ${res}`)
     })
 
     robot.respond (/mv (\d+) (\d+)/i, (msg) => {
@@ -234,6 +241,7 @@ module.exports = (robot) => {
                 let data = robot.brain.get(id)
                 res += `${id}> ${data[KEY_V]}\n`
             })
+            res += '--------\n'
         })
       
         msg.send(res)
