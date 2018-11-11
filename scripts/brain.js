@@ -1,21 +1,65 @@
 'use strict'
 
-module.exports = (robot) => {
-    const ID = 'id'
-    const TAG = 'tag'
-    const SEP = '_'
+const NEXT_ID = 'id'
+const TAGS = 'tags'
+const SEP = '_'
 
-    const TODO = 'todo_'
-    const BUCKET = 'bucket_'
-    const MONITOR = 'monitor_'
-    const ARCHIVE = 'archive_'
-    const DONE = 'done_'
+const KEY_T = 't';
+const KEY_V = 'v';
+
+const TODO = 'todo'
+const BUCKET = 'bucket'
+const MONITOR = 'monitor'
+const ARCHIVE = 'archive'
+const DONE = 'done'
+
+function change_tag(id, data, tag_src, tag_dest) {
+    // update data's tag
+    data[KEY_T] = tag_dest
+    robot.brain.set(id, data)
+    
+    // delete id from src tag
+    let ids = robot.brain.get(tag_src)
+    let index = ids.indexOf(id)
+    ids.splice(index, 1)
+    robot.brain.set(tag_src, ids)
+    
+    // add id to dest tag
+    let ids = robot.brain.get(tag_dest) || []
+    ids.push[id]
+    robot.brain.set(tag_dest, ids)
+
+    update_taglist(tag_dest)
+}
+
+function remove_tag_data(id, data) {
+    // delete id from tag list
+    let tag = data[KEY_T]
+    let ids = robot.brain.get(tag)
+    let index = ids.indexOf(id)
+    ids.splice(index, 1)
+    robot.brain.set(tag, ids)
+
+    // delete data
+    robot.brain.remove(id)
+}
+
+function update_taglist(tag){
+    let taglist = robot.brain.get(TAGS)
+    let index = tag.indexOf(tag)
+    if (index < 0) {
+        taglist.push(tag)
+        robot.brain.set(TAGS, taglist)
+    }
+}
+
+module.exports = (robot) => {
 
     // TODO -ok-> DONE
     // TODO -rm-> BUCKET
     // TODO -see-> MONITOR
 
-    // BUCKET -up-> TODO
+    // BUCKET -do-> TODO
     // BUCKET -see-> MONITOR
     // BUCKET -rm-> ARCHIVE
 
@@ -27,36 +71,119 @@ module.exports = (robot) => {
 
     // todo list functions
     robot.respond (/add(?: t:(.+))? (.+)/i, (msg) => {
-        let tag = msg.match[1]
-        if (tag == undefined) {
-            tag = TODO
-        } else { 
-            tag = `${tag}${SEP}`
-        }
-        
+        let tag = msg.match[1] || TODO
         let work = msg.match[2]
 
-        let id = robot.brain.get(ID)
-        if (id == null) {
-            id = 1
-        }
+        let data = {KEY_T:tag, KEY_V:work}
 
-        let work_id = `${tag}${id}`
-        let next_id = id + 1
+        let id = robot.brain.get(NEXT_ID) || 1
+        let ids = robot.brain.get(tag) || []
+        ids.push(id)
 
-        robot.brain.set(work_id, work)
-        robot.brain.set(ID, next_id)
-        msg.send (`DONE:add ${id}> ${work}`)
+        robot.brain.set(id, data)
+        robot.brain.set(NEXT_ID, id + 1)
+        robot.brain.set(tag, ids)
+        update_taglist(tag)
+        msg.send (`OK: add ${id}> ${work}`)
     })
 
     robot.respond (/rm (\d+)/i, (msg) => {
         let id = msg.match[1]
-        let del_id = `${TODO}${id}`
 
-        let del_todo  = robot.brain.get(del_id)
+        let data  = robot.brain.get(id)
+        if (data == null) {
+            msg.send (`ERR: no data for ${id}`)
+            return
+        }
+        let tag = data[KEY_T]
+        switch (tag) {
+            case TODO:
+                change_tag(id, data, TODO, BUCKET)
+                break
+            case BUCKET:
+                change_tag(id, data, BUCKET, ARCHIVE)
+                break
+            case MONITOR:
+                change_tag(id, data, MONITOR, ARCHIVE)
+                break
+            case ARCHIVE:
+            default:
+                remove_tag_data(id, data)
+        }
 
-        robot.brain.remove(del_id)
-        msg.send (`DONE:rm ${id}> ${del_todo}`)
+        msg.send (`OK: rm ${id}> ${data}`)
+    })
+
+    robot.respond (/do (\d+)/i, (msg) => {
+        let id = msg.match[1]
+
+        let data  = robot.brain.get(id)
+        if (data == null) {
+            msg.send (`ERR: no data for ${id}`)
+            return
+        }
+        let tag = data[KEY_T]
+        switch (tag) {
+            case BUCKET:
+                change_tag(id, data, BUCKET, TODO)
+                break
+            case MONITOR:
+                change_tag(id, data, MONITOR, TODO)
+                break
+            default:
+                msg.send (`ERR: can't do ${tag}`)
+                return
+        }
+
+        msg.send (`OK: do ${id}> ${data}`)
+    })
+
+    robot.respond (/see (\d+)/i, (msg) => {
+        let id = msg.match[1]
+
+        let data  = robot.brain.get(id)
+        if (data == null) {
+            msg.send (`ERR: no data for ${id}`)
+            return
+        }
+        let tag = data[KEY_T]
+        switch (tag) {
+            case BUCKET:
+                change_tag(id, data, BUCKET, MONITOR)
+                break
+            case TODO:
+                change_tag(id, data, TODO, MONITOR)
+                break
+            default:
+                msg.send (`ERR: can't see ${tag}`)
+                return
+        }
+
+        msg.send (`OK: see ${id}> ${data}`)
+    })
+
+    robot.respond (/ok (\d+)/i, (msg) => {
+        let id = msg.match[1]
+
+        let data  = robot.brain.get(id)
+        if (data == null) {
+            msg.send (`ERR: no data for ${id}`)
+            return
+        }
+        let tag = data[KEY_T]
+        switch (tag) {
+            case MONITOR:
+                change_tag(id, data, MONITOR, DONE)
+                break
+            case TODO:
+                change_tag(id, data, TODO, DONE)
+                break
+            default:
+                msg.send (`ERR: can't finish ${tag}`)
+                return
+        }
+
+        msg.send (`OK: finish ${id}> ${data}`)
     })
 
     robot.respond (/mv (\d+) (\d+)/i, (msg) => {
@@ -64,50 +191,55 @@ module.exports = (robot) => {
         let des_id = parseInt(msg.match[2])
 
         // update id 
-        let id = robot.brain.get(ID)
+        let id = robot.brain.get(NEXT_ID)
         if (id == null || des_id > id) {
-            let next_id = des_id + 1
-            robot.brain.set(ID, next_id)
+            robot.brain.set(NEXT_ID, des_id + 1)
         }
 
-        let src_todo_id = `${TODO}${src_id}`
-        let des_todo_id = `${TODO}${des_id}`
-
         // return if dest has value
-        let check = robot.brain.get(des_todo_id)
+        let check = robot.brain.get(des_id)
         if (check != null) {
-            msg.send (`ERR:${des_id} has value ${check}`)
+            msg.send (`ERR: ${des_id} has value ${check}`)
             return
         }
 
         // mv to dest
-        let todo = robot.brain.get(src_todo_id)
-        robot.brain.set(des_todo_id, todo) 
-        robot.brain.remove(src_todo_id)
-        msg.send (`DONE:mv ${src_id} to ${des_id}`)
+        let data = robot.brain.get(src_id)
+        robot.brain.set(des_id, data) 
+        robot.brain.remove(src_id)
+        msg.send (`OK: mv ${src_id} to ${des_id}`)
     })
 
-    robot.respond (/ls/i, (msg) => {
-        let data = robot.brain.data._private
+    robot.respond (/ls(?: t:(.+))?/i, (msg) => {
+        let tag_query = msg.match[1] // undefined if not exist
+
+        let taglist = []
+        if (tag_query == undefined) {
+            taglist = robot.brain.get(TAGS)
+        } else {
+            taglist.push(tag_query)
+        }
+
         let res = ''
-        let keys = Object.keys(data).sort((a, b) => {
-            let a_id = parseInt(a.substring('todo_'.length))
-            let b_id = parseInt(b.substring('todo_'.length))
-            return a_id > b_id ? 1 : -1;
+        taglist.forEach((tag) => {
+            let ids = robot.brain.get(tag)
+            let sort_ids = ids.sort((a, b) => {
+                return a > b ? 1 : -1;
+            })
+
+            res = `${tag}:\n`
+            sort_ids.forEach((id) => {
+                let data = robot.brain.get(id)
+                res += `${id}> ${data[KEY_V]}\n`
+            })
         })
-        keys.forEach((key) => {
-            if (key.startsWith('todo_')) {
-                let id = key.substring('todo_'.length)
-                res += `${id}> ${data[key]}\n`
-            }
-        })
-        
-        msg.send (res)
+      
+        msg.send(res)
     })
 
     robot.respond (/save/i, (msg) => {
         robot.brain.save()
-        msg.send ('DONE:save')
+        msg.send ('OK: save')
     })
 
     // simple interface for test
