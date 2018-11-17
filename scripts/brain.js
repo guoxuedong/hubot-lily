@@ -284,6 +284,44 @@ module.exports = (robot) => {
         msg.send(res)
     })
 
+    robot.respond (/up t:(.+)/i, (msg) => {
+        let tag = msg.match[1]
+
+        let taglist = robot.brain.get(TAGS) || []
+        let index = taglist.indexOf(tag)
+        if (index < 0) {
+            msg.send ('ERR: ${tag} not exist')
+            return
+        } else if (index == 0) {
+            msg.send ('ERR: ${tag} is the first')
+            return
+        }
+
+        taglist.splice(index, 1)
+        taglist.splice(index-1 , 0, tag)
+        robot.brain.set(TAGS, taglist)
+        msg.send ('OK: up ${tag}')
+    })
+
+    robot.respond (/down t:(.+)/i, (msg) => {
+        let tag = msg.match[1]
+
+        let taglist = robot.brain.get(TAGS) || []
+        let index = taglist.indexOf(tag)
+        if (index < 0) {
+            msg.send ('ERR: ${tag} not exist')
+            return
+        } else if (index == taglist.length - 1) {
+            msg.send ('ERR: ${tag} is the last')
+            return
+        }
+
+        taglist.splice(index, 1)
+        taglist.splice(index+1 , 0, tag)
+        robot.brain.set(TAGS, taglist)
+        msg.send ('OK: down ${tag}')
+    })
+
     robot.respond (/save/i, (msg) => {
         robot.brain.save()
         msg.send ('OK: save')
