@@ -8,7 +8,7 @@ module.exports = (robot) ->
             attachments: [
               {
                 images: [
-                  {url: 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + quest_url},
+                  {url: 'http://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + quest_url},
                 ]
               }
             ]
